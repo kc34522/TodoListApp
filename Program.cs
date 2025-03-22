@@ -1,11 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net.NetworkInformation;
+﻿using System; //輸入/輸出、數學運算、時間處理
+using System.Collections.Generic; // List、Dictionary 等集合
+using System.IO; // 引入檔案讀寫
+// using System.Diagnostics; // 不太需要，除非你要記錄 Debug 訊息。
+// using System.Net.NetworkInformation; // 除非你要寫網路程式，否則可以刪掉。
+
+
 
 // C# 是物件導向語言，所有程式碼必需放在class（類別）裡。類別名稱可以是任意名稱。（Program只C#預設的名稱）C#主程式一定要有一個類別（class）且這個類別裡要有main方法，程式才會執行。（.Net 6+之後可以省略class, Main方法，但這種寫法只適合簡單的小程式，如果你的程式有多個類別，還是建議寫完整的 class Program。）
-class Program 
+class Program
 {
+
+    // 設定檔案名稱
+    static string todoFilePath = "todoList.txt";   // 未完成待辦事項
+    static string doneFilePath = "doneList.txt";   // 已完成待辦事項
+
+    static void LoadTodos()
+    {
+        if (File.Exists(todoFilePath))
+        {
+            todoList = new List<string>(File.ReadAllLines(todoFilePath)); // 讀取檔案（陣列），讀取並回傳 string[]
+        }
+
+        if (File.Exists(doneFilePath))
+        {
+            doneTodoList = new List<string>(File.ReadAllLines(doneFilePath));
+        }
+    }
+
+    static void SaveTodos()
+    {
+        File.WriteAllLines(todoFilePath, todoList); // 寫入多行。檔案不存在時：建立新檔案 並寫入; 檔案存在時的行為：覆蓋舊內容。
+        File.WriteAllLines(doneFilePath, doneTodoList);
+    }
+
 
     //讓 todoList 變成「全域變數」，整個 Program 類別都可以存取它。
     // 如果放在 Main 方法內，todoList 只能在 Main 裡面用，其他方法無法存取。
@@ -17,8 +44,10 @@ class Program
     // static: 不需要建立物件，程式可以直接執行。（因為 程式啟動時，C# 還沒建立任何物件，所以 Main 必須是 static，讓 .NET 直接執行它。）
     // void: 不回傳值，但可以改成 int 回傳狀態碼。
     // 如果方法 只是顯示內容 或 修改變數，但不需要回傳值(return)，就可以用 void。
-    static void Main() 
+    static void Main()
     {
+        LoadTodos(); // 讀取檔案，載入之前存的待辦事項
+
         while (true)
         {
             Console.WriteLine("\n📌 To-Do List");
@@ -45,8 +74,9 @@ class Program
                     DoneToDo();
                     break;
                 case "4":
+                    SaveTodos(); // 離開前存檔
                     return; // 退出程式 // 用來結束整個方法（Main、其他函式等），並回傳結果（如果方法有回傳值）。
-               
+
                 default:
                     Console.WriteLine("❌ 無效的選擇");
                     break;
@@ -60,10 +90,11 @@ class Program
 
     static void FinishTodos()
     {
-        if(doneTodoList.Count > 0){
+        if (doneTodoList.Count > 0)
+        {
             Console.WriteLine("\n✅ 已完成事項:");
 
-            foreach(string task in doneTodoList)
+            foreach (string task in doneTodoList)
             {
                 Console.WriteLine($"✅ {task}");
             }
@@ -82,7 +113,7 @@ class Program
         if (todoList.Count == 0)
         {
             Console.WriteLine("✨ 沒有待辦事項");
-            return; 
+            return;
         }
 
         for (int i = 0; i < todoList.Count; i++)
@@ -96,6 +127,7 @@ class Program
         Console.Write("輸入新的待辦事項: ");
         string task = Console.ReadLine();
         todoList.Add(task);
+        SaveTodos(); // ✅ 變更後存檔
         Console.WriteLine("✅ 已新增!");
     }
 
@@ -105,12 +137,14 @@ class Program
         Console.Write("請輸入要刪除的項目編號: ");
         if (int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= todoList.Count)
         {
-            Console.Write($"⚠️ 確定要刪除 '{todoList[index-1]}' 嗎?(y/n): ");
+            Console.Write($"⚠️ 確定要刪除 '{todoList[index - 1]}' 嗎?(y/n): ");
             string confirm = Console.ReadLine().ToLower();
 
-            if(confirm == "y")
+            if (confirm == "y")
             {
                 todoList.RemoveAt(index - 1);
+                SaveTodos(); // ✅ 變更後存檔
+
                 Console.WriteLine("🗑️ 已刪除!");
             }
             else
@@ -128,11 +162,12 @@ class Program
     {
         ShowTodos();
         Console.Write("請輸入已完成的項目編號: ");
-        if(int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= todoList.Count)
+        if (int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= todoList.Count)
         {
             string completedTask = todoList[index - 1];
             doneTodoList.Add(completedTask);
-            todoList.RemoveAt(index-1);
+            todoList.RemoveAt(index - 1);
+            SaveTodos(); // ✅ 變更後存檔
             Console.WriteLine($"✅ 已完成: {completedTask}");
             // haveDoneToDo = true;
         }
