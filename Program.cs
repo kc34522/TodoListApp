@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 
 // C# 是物件導向語言，所有程式碼必需放在class（類別）裡。類別名稱可以是任意名稱。（Program只C#預設的名稱）C#主程式一定要有一個類別（class）且這個類別裡要有main方法，程式才會執行。（.Net 6+之後可以省略class, Main方法，但這種寫法只適合簡單的小程式，如果你的程式有多個類別，還是建議寫完整的 class Program。）
@@ -53,15 +54,18 @@ class Program
         }
     }
 
-    static bool haveDoneToDo = false;
+    // static bool haveDoneToDo = false;
+    // haveDoneToDo 變數其實不太必要。你目前使用 haveDoneToDo 來檢查是否有完成的待辦事項，但 doneTodoList.Count > 0 就能知道是否有完成事項了，所以可以移除 haveDoneToDo。
     static List<string> doneTodoList = new List<string>();
 
     static void FinishTodos()
     {
-        if(haveDoneToDo == true){
-            for(int i = 0; i < doneTodoList.Count; i++ )
+        if(doneTodoList.Count > 0){
+            Console.WriteLine("\n✅ 已完成事項:");
+
+            foreach(string task in doneTodoList)
             {
-                Console.WriteLine($"✅ {doneTodoList[i]}");
+                Console.WriteLine($"✅ {task}");
             }
         }
     }
@@ -101,8 +105,18 @@ class Program
         Console.Write("請輸入要刪除的項目編號: ");
         if (int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= todoList.Count)
         {
-            todoList.RemoveAt(index - 1);
-            Console.WriteLine("🗑️ 已刪除!");
+            Console.Write($"⚠️ 確定要刪除 '{todoList[index-1]}' 嗎?(y/n): ");
+            string confirm = Console.ReadLine().ToLower();
+
+            if(confirm == "y")
+            {
+                todoList.RemoveAt(index - 1);
+                Console.WriteLine("🗑️ 已刪除!");
+            }
+            else
+            {
+                Console.WriteLine("🔄 取消刪除");
+            }
         }
         else
         {
@@ -116,9 +130,11 @@ class Program
         Console.Write("請輸入已完成的項目編號: ");
         if(int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= todoList.Count)
         {
-            doneTodoList.Add(todoList[index-1]);
+            string completedTask = todoList[index - 1];
+            doneTodoList.Add(completedTask);
             todoList.RemoveAt(index-1);
-            haveDoneToDo = true;
+            Console.WriteLine($"✅ 已完成: {completedTask}");
+            // haveDoneToDo = true;
         }
         else
         {
